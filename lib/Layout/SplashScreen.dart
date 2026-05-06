@@ -89,35 +89,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   Positioned(
                       left: 100, top: 440, child: Text('E', style: letter)),
 
-                  // ─────────────────────────────────────
-                  // LAYER 4 — TOMBOL ENTER ARCHIVE
-                  // ─────────────────────────────────────
-                  Positioned(
-                    bottom: 55,
-                    left: 55,
-                    child: Container(
-                      width: 280,
-                      height: 54,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFAC9362), Color(0xFF766138)],
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'ENTER ARCHIVE',
-                          style: GoogleFonts.bodoniModa(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 6,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+
 
                 ],
               ),
