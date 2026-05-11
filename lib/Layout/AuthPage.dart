@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Service/AuthService.dart'; // Pastikan path service lo bener
+import '../Service/AuthService.dart'; // Pastikan path service sudah benar
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +15,14 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
 
   void _login() async {
+    // Validasi input kosong
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email dan Password harus diisi!"), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       await _authService.signIn(
@@ -23,9 +31,11 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (mounted) Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login Gagal: $e"), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Login Gagal: $e"), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -35,90 +45,102 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Welcome Back',
-              style: TextStyle(
-                fontSize: 32,
-                fontFamily: 'Georgia',
-                fontWeight: FontWeight.bold,
+      // Tambahkan ScrollView supaya tidak error saat keyboard muncul
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 80), // Jarak atas
+              const Text(
+                'Welcome Back',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontFamily: 'Georgia',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const Text(
-              'Sign in to continue to Artheca',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 40),
-            _buildTextField(
-              _emailController,
-              'Email',
-              Icons.email_outlined,
-              false,
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              _passwordController,
-              'Password',
-              Icons.lock_outline,
-              true,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFAC9362),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              const Text(
+                'Sign in to continue to Artheca',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 40),
+              // Tambahkan KEY agar Automation mudah mengenali field ini
+              _buildTextField(
+                _emailController,
+                'Email',
+                Icons.email_outlined,
+                false,
+                key: const Key('emailField'),
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                _passwordController,
+                'Password',
+                Icons.lock_outline,
+                true,
+                key: const Key('passwordField'),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  key: const Key('loginButton'), // Key untuk tombol login
+                  onPressed: _isLoading ? null : _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFAC9362),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text(
+                    'SIGN IN',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'SIGN IN',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
               ),
-            ),
-            Center(
-              child: TextButton(
-                onPressed: () => Navigator.pushNamed(context, '/register'),
-                child: const Text(
-                  "Don't have an account? Register",
-                  style: TextStyle(color: Color(0xFFAC9362)),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  child: const Text(
+                    "Don't have an account? Register",
+                    style: TextStyle(color: Color(0xFFAC9362)),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // Fungsi buildTextField yang sudah mendukung KEY
   Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    IconData icon,
-    bool isPassword,
-  ) {
+      TextEditingController controller,
+      String label,
+      IconData icon,
+      bool isPassword, {
+        Key? key,
+      }) {
     return TextField(
+      key: key,
       controller: controller,
       obscureText: isPassword,
       style: const TextStyle(color: Colors.black),
@@ -143,7 +165,6 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // 1. TAMBAHIN CONTROLLER NAMA
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -151,22 +172,17 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
 
   void _register() async {
-    // Validasi semua field
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Semua kolom harus diisi!"),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text("Semua kolom harus diisi!"), backgroundColor: Colors.orange),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      // 2. KIRIM 3 PARAMETER (Email, Password, Nama)
       await _authService.signUp(
         _emailController.text,
         _passwordController.text,
@@ -175,10 +191,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Register Berhasil! Silakan Login."),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text("Register Berhasil! Silakan Login."), backgroundColor: Colors.green),
         );
         Navigator.pop(context);
       }
@@ -203,7 +216,6 @@ class _RegisterPageState extends State<RegisterPage> {
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
-        // Tambahin scroll biar gak overflow pas keyboard muncul
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,12 +233,12 @@ class _RegisterPageState extends State<RegisterPage> {
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 40),
-            // 3. TAMBAHIN FIELD NAMA DI UI
             _buildTextField(
               _nameController,
               'Full Name',
               Icons.person_outline,
               false,
+              key: const Key('regNameField'),
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -234,6 +246,7 @@ class _RegisterPageState extends State<RegisterPage> {
               'Email',
               Icons.email_outlined,
               false,
+              key: const Key('regEmailField'),
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -241,6 +254,7 @@ class _RegisterPageState extends State<RegisterPage> {
               'Password',
               Icons.lock_outline,
               true,
+              key: const Key('regPasswordField'),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -256,20 +270,20 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 child: _isLoading
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
                     : const Text(
-                        'REGISTER',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  'REGISTER',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
@@ -279,12 +293,14 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    IconData icon,
-    bool isPassword,
-  ) {
+      TextEditingController controller,
+      String label,
+      IconData icon,
+      bool isPassword, {
+        Key? key,
+      }) {
     return TextField(
+      key: key,
       controller: controller,
       obscureText: isPassword,
       style: const TextStyle(color: Colors.black),
